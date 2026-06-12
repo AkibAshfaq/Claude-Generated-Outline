@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Node.js Mastery — Beginner to Expert</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0A0F1E;
+    --bg-card: #111827;
+    --bg-card-hover: #1a2540;
+    --bg-modal: #0d1526;
+    --border: rgba(255,255,255,0.07);
+    --border-hover: rgba(0,212,255,0.35);
+    --cyan: #00D4FF;
+    --cyan-dim: rgba(0,212,255,0.12);
+    --cyan-glow: rgba(0,212,255,0.25);
+    --green: #00E5A0;
+    --amber: #FFB347;
+    --red: #FF6B6B;
+    --text: #F0F4FF;
+    --text-muted: #7A8BAA;
+    --text-dim: #4A5568;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Inter', sans-serif;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(10,15,30,0.85);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    height: 56px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .nav-brand {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 0.05em;
+  }
+  .nav-brand span { color: var(--text-muted); font-weight: 400; }
+  .nav-links {
+    display: flex; gap: 0.25rem; list-style: none;
+  }
+  .nav-links a {
+    font-size: 12px;
+    font-family: var(--mono);
+    color: var(--text-muted);
+    text-decoration: none;
+    padding: 5px 10px;
+    border-radius: 6px;
+    transition: color 0.15s, background 0.15s;
+  }
+  .nav-links a:hover { color: var(--cyan); background: var(--cyan-dim); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 6rem 2rem 4rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 0%, rgba(0,212,255,0.08) 0%, transparent 70%),
+      radial-gradient(ellipse 40% 30% at 80% 80%, rgba(0,229,160,0.05) 0%, transparent 60%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0; z-index: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 30%, transparent 80%);
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 760px; }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 12px; font-weight: 500;
+    color: var(--cyan); letter-spacing: 0.1em;
+    background: var(--cyan-dim); border: 1px solid rgba(0,212,255,0.2);
+    padding: 6px 14px; border-radius: 99px;
+    margin-bottom: 1.5rem;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan);
+    animation: pulse 1.8s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.7); }
+  }
+
+  .hero h1 {
+    font-family: var(--mono);
+    font-size: clamp(2.4rem, 6vw, 4rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    margin-bottom: 1.25rem;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--cyan);
+  }
+  .hero-sub {
+    font-size: 17px;
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+
+  /* ── EVENT LOOP TICKER ── */
+  .loop-ticker {
+    display: flex; align-items: center; gap: 0;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 0;
+    overflow: hidden;
+    max-width: 640px;
+    margin: 0 auto 2.5rem;
+    position: relative;
+  }
+  .loop-ticker::before, .loop-ticker::after {
+    content: '';
+    position: absolute; top: 0; bottom: 0; width: 48px; z-index: 2;
+  }
+  .loop-ticker::before { left: 0; background: linear-gradient(90deg, var(--bg-card), transparent); }
+  .loop-ticker::after { right: 0; background: linear-gradient(-90deg, var(--bg-card), transparent); }
+
+  .loop-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--text-dim); letter-spacing: 0.12em;
+    white-space: nowrap; padding: 0 16px;
+    flex-shrink: 0;
+  }
+  .loop-phases {
+    display: flex; gap: 0;
+    animation: scroll-loop 10s linear infinite;
+    white-space: nowrap;
+  }
+  @keyframes scroll-loop {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+  .loop-phase {
+    font-family: var(--mono); font-size: 11px; font-weight: 500;
+    padding: 4px 14px;
+    border-radius: 6px;
+    margin: 0 4px;
+    white-space: nowrap;
+    transition: background 0.3s;
+  }
+  .lp-timers   { color: #00D4FF; background: rgba(0,212,255,0.1); }
+  .lp-poll     { color: #00E5A0; background: rgba(0,229,160,0.1); }
+  .lp-check    { color: #FFB347; background: rgba(255,179,71,0.1); }
+  .lp-close    { color: #FF6B6B; background: rgba(255,107,107,0.1); }
+  .lp-nexttick { color: #C084FC; background: rgba(192,132,252,0.1); }
+  .lp-promise  { color: #38BDF8; background: rgba(56,189,248,0.1); }
+
+  .hero-stats {
+    display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;
+    margin-bottom: 2.5rem;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: var(--mono); font-size: 22px; font-weight: 700; color: var(--cyan);
+    display: block;
+  }
+  .stat-label { font-size: 12px; color: var(--text-muted); }
+
+  .hero-cta {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 13px; font-weight: 600;
+    background: var(--cyan); color: #0A0F1E;
+    padding: 12px 28px; border-radius: var(--radius);
+    text-decoration: none;
+    transition: opacity 0.15s, transform 0.15s;
+    letter-spacing: 0.03em;
+  }
+  .hero-cta:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* ── SECTION ── */
+  section {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .section-header {
+    display: flex; align-items: baseline; gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .phase-tag {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    letter-spacing: 0.14em; padding: 4px 12px; border-radius: 99px;
+    text-transform: uppercase;
+  }
+  .phase-foundation { background: rgba(0,212,255,0.12); color: var(--cyan); border: 1px solid rgba(0,212,255,0.25); }
+  .phase-core       { background: rgba(0,229,160,0.12); color: var(--green); border: 1px solid rgba(0,229,160,0.25); }
+  .phase-advanced   { background: rgba(255,179,71,0.12); color: var(--amber); border: 1px solid rgba(255,179,71,0.25); }
+  .phase-expert     { background: rgba(255,107,107,0.12); color: var(--red);  border: 1px solid rgba(255,107,107,0.25); }
+
+  .section-title {
+    font-family: var(--mono); font-size: 13px; font-weight: 700;
+    color: var(--text-muted); letter-spacing: 0.06em;
+  }
+
+  /* ── CARDS GRID ── */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.4rem 1.5rem;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, var(--cyan-dim) 0%, transparent 60%);
+    opacity: 0; transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .card:hover { border-color: var(--border-hover); background: var(--bg-card-hover); transform: translateY(-2px); }
+  .card:hover::after { opacity: 1; }
+
+  .card-mod-num {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--text-dim); margin-bottom: 10px;
+    letter-spacing: 0.1em;
+  }
+  .card-title {
+    font-family: var(--mono); font-size: 15px; font-weight: 700;
+    color: var(--text); margin-bottom: 6px; line-height: 1.3;
+  }
+  .card-sub {
+    font-size: 12px; color: var(--text-muted); line-height: 1.55;
+  }
+  .card-arrow {
+    position: absolute; bottom: 1.2rem; right: 1.4rem;
+    font-size: 18px; color: var(--text-dim);
+    transition: color 0.2s, transform 0.2s;
+  }
+  .card:hover .card-arrow { color: var(--cyan); transform: translate(2px, -2px); }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 200;
+    background: rgba(5,8,18,0.85);
+    backdrop-filter: blur(8px);
+    align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .modal-overlay.open { display: flex; animation: fade-in 0.18s ease; }
+  @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+  .modal {
+    background: var(--bg-modal);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: var(--radius-lg);
+    width: 100%; max-width: 640px;
+    max-height: 88vh; overflow-y: auto;
+    padding: 2rem;
+    animation: slide-up 0.2s ease;
+    position: relative;
+  }
+  @keyframes slide-up { from { transform: translateY(16px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  .modal::-webkit-scrollbar { width: 4px; }
+  .modal::-webkit-scrollbar-track { background: transparent; }
+  .modal::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .modal-close {
+    position: absolute; top: 1.25rem; right: 1.25rem;
+    background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-muted); font-size: 18px;
+    width: 32px; height: 32px; border-radius: 8px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: color 0.15s, border-color 0.15s;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); border-color: var(--border-hover); }
+
+  .modal-phase { margin-bottom: 8px; }
+  .modal-title {
+    font-family: var(--mono); font-size: 20px; font-weight: 700;
+    color: var(--text); margin-bottom: 6px;
+  }
+  .modal-sub { font-size: 14px; color: var(--text-muted); margin-bottom: 1.5rem; line-height: 1.6; }
+
+  .topics-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--text-dim); letter-spacing: 0.12em;
+    margin-bottom: 10px;
+  }
+  .topics-list {
+    display: flex; flex-direction: column; gap: 6px; margin-bottom: 1.75rem;
+  }
+  .topic-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 10px 14px;
+    font-size: 13px; color: var(--text);
+    line-height: 1.5;
+  }
+  .topic-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--cyan); flex-shrink: 0; margin-top: 5px;
+  }
+  .topic-dot.green { background: var(--green); }
+  .topic-dot.amber { background: var(--amber); }
+  .topic-dot.red   { background: var(--red); }
+
+  .modal-divider { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  .prompt-label {
+    font-family: var(--mono); font-size: 10px; font-weight: 700;
+    color: var(--text-dim); letter-spacing: 0.12em; margin-bottom: 8px;
+  }
+  .prompt-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+    line-height: 1.6; margin-bottom: 1.25rem;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .copy-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--mono); font-size: 12px; font-weight: 600;
+    background: var(--cyan); color: #0A0F1E;
+    padding: 9px 20px; border-radius: var(--radius);
+    border: none; cursor: pointer;
+    transition: opacity 0.15s;
+    letter-spacing: 0.04em;
+  }
+  .copy-btn:hover { opacity: 0.85; }
+  .copy-btn.copied { background: var(--green); }
+
+  /* ── PROGRESS LINE ── */
+  .roadmap-line {
+    display: flex; align-items: center; gap: 0;
+    max-width: 1200px; margin: 0 auto 0;
+    padding: 0 2rem;
+    overflow: hidden;
+  }
+  .line-phase {
+    flex: 1; height: 3px; border-radius: 2px;
+    transition: opacity 0.3s;
+  }
+  .line-foundation { background: var(--cyan); }
+  .line-core       { background: var(--green); }
+  .line-advanced   { background: var(--amber); }
+  .line-expert     { background: var(--red); }
+  .line-dot {
+    width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0;
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center; padding: 3rem 2rem 4rem;
+    font-family: var(--mono); font-size: 12px; color: var(--text-dim);
+    border-top: 1px solid var(--border);
+    max-width: 1200px; margin: 0 auto;
+  }
+  footer span { color: var(--cyan); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    nav { padding: 0 1rem; }
+    .nav-links { display: none; }
+    .hero { padding: 5rem 1.25rem 3rem; }
+    section { padding: 3rem 1.25rem; }
+    .hero h1 { font-size: 2rem; }
+    .hero-stats { gap: 1.25rem; }
+    .cards { grid-template-columns: 1fr; }
+    .modal { padding: 1.5rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .loop-phases { animation: none; }
+    .hero-eyebrow::before { animation: none; }
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">node<span>.js</span> / mastery</div>
+  <ul class="nav-links">
+    <li><a href="#foundation">Foundation</a></li>
+    <li><a href="#core">Core APIs</a></li>
+    <li><a href="#advanced">Advanced</a></li>
+    <li><a href="#expert">Expert</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Complete Learning Roadmap</div>
+    <h1>Master<br><em>Node.js</em></h1>
+    <p class="hero-sub">From V8 internals and the event loop to microservices architecture and production deployment. Every layer, every concept, in order.</p>
+
+    <div class="loop-ticker" aria-label="Node.js event loop phases animation">
+      <div class="loop-label">EVENT LOOP</div>
+      <div class="loop-phases" id="loopPhases">
+        <span class="loop-phase lp-timers">timers</span>
+        <span class="loop-phase lp-poll">poll</span>
+        <span class="loop-phase lp-check">check</span>
+        <span class="loop-phase lp-close">close callbacks</span>
+        <span class="loop-phase lp-nexttick">nextTick queue</span>
+        <span class="loop-phase lp-promise">Promise queue</span>
+        <span class="loop-phase lp-timers">timers</span>
+        <span class="loop-phase lp-poll">poll</span>
+        <span class="loop-phase lp-check">check</span>
+        <span class="loop-phase lp-close">close callbacks</span>
+        <span class="loop-phase lp-nexttick">nextTick queue</span>
+        <span class="loop-phase lp-promise">Promise queue</span>
+      </div>
+    </div>
+
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">15</span><span class="stat-label">modules</span></div>
+      <div class="stat"><span class="stat-num">4</span><span class="stat-label">phases</span></div>
+      <div class="stat"><span class="stat-num">100+</span><span class="stat-label">topics</span></div>
+      <div class="stat"><span class="stat-num">0→∞</span><span class="stat-label">skill level</span></div>
+    </div>
+
+    <a href="#foundation" class="hero-cta">Start learning ↓</a>
+  </div>
+</div>
+
+<div class="roadmap-line">
+  <div class="line-dot" style="background:var(--cyan)"></div>
+  <div class="line-phase line-foundation"></div>
+  <div class="line-dot" style="background:var(--green)"></div>
+  <div class="line-phase line-core"></div>
+  <div class="line-dot" style="background:var(--amber)"></div>
+  <div class="line-phase line-advanced"></div>
+  <div class="line-dot" style="background:var(--red)"></div>
+  <div class="line-phase line-expert"></div>
+  <div class="line-dot" style="background:var(--red)"></div>
+</div>
+
+<!-- PHASE 1 -->
+<section id="foundation">
+  <div class="section-header">
+    <span class="phase-tag phase-foundation">Phase 1</span>
+    <span class="section-title">Foundation</span>
+  </div>
+  <div class="cards" id="cards-foundation"></div>
+</section>
+
+<!-- PHASE 2 -->
+<section id="core">
+  <div class="section-header">
+    <span class="phase-tag phase-core">Phase 2</span>
+    <span class="section-title">Core APIs</span>
+  </div>
+  <div class="cards" id="cards-core"></div>
+</section>
+
+<!-- PHASE 3 -->
+<section id="advanced">
+  <div class="section-header">
+    <span class="phase-tag phase-advanced">Phase 3</span>
+    <span class="section-title">Advanced Patterns</span>
+  </div>
+  <div class="cards" id="cards-advanced"></div>
+</section>
+
+<!-- PHASE 4 -->
+<section id="expert">
+  <div class="section-header">
+    <span class="phase-tag phase-expert">Phase 4</span>
+    <span class="section-title">Expert / Production</span>
+  </div>
+  <div class="cards" id="cards-expert"></div>
+</section>
+
+<footer>
+  Built for learners who want to understand Node.js at every layer —<br>
+  from <span>libuv threads</span> to <span>Kubernetes pods</span>.
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    <div class="modal-phase" id="modalPhase"></div>
+    <div class="modal-title" id="modalTitle"></div>
+    <div class="modal-sub" id="modalSub"></div>
+    <div class="topics-label">TOPICS COVERED</div>
+    <div class="topics-list" id="modalTopics"></div>
+    <hr class="modal-divider">
+    <div class="prompt-label">STARTER PROMPT — PASTE INTO A NEW CHAT</div>
+    <div class="prompt-box" id="modalPrompt"></div>
+    <button class="copy-btn" id="copyBtn" onclick="copyPrompt()">⌘ Copy prompt</button>
+  </div>
+</div>
+
+<script>
+const modules = [
+  {
+    id:0, phase:"foundation", num:"01",
+    title:"What is Node.js",
+    sub:"Runtime, V8 engine, design philosophy, and where Node fits in the modern stack.",
+    topics:[
+      "JavaScript runtime on the server — not a language, not a framework",
+      "V8 engine: how JS gets compiled to machine code with JIT",
+      "Single-threaded, non-blocking I/O model and why it exists",
+      "Node.js history: Ryan Dahl, Joyent, io.js fork, OpenJS Foundation",
+      "Node vs Deno vs Bun — tradeoffs and when to pick each runtime",
+      "Installing Node with nvm, LTS vs Current versions explained",
+      "REPL, running scripts, --watch mode, node --inspect debugger"
+    ],
+    prompt:"Teach me what Node.js is from first principles. Explain how the V8 engine compiles JavaScript to machine code, what makes Node single-threaded and non-blocking, how it compares to Deno and Bun, and show me my first Node.js script with a full line-by-line explanation."
+  },
+  {
+    id:1, phase:"foundation", num:"02",
+    title:"Node internals & architecture",
+    sub:"libuv, the thread pool, C++ bindings, and how non-blocking I/O actually works at a low level.",
+    topics:[
+      "libuv: cross-platform async I/O library — the real engine beneath Node",
+      "Thread pool (4 default workers) — fs, crypto, DNS all use it",
+      "Event loop phases: timers → pending → idle → poll → check → close",
+      "Microtask queue: process.nextTick vs Promise.resolve execution order",
+      "C++ bindings and N-API — how JavaScript calls operating system APIs",
+      "V8 memory model: heap, stack, old/new space, garbage collection pressure",
+      "Blocking the event loop — what breaks and how to detect it with clinic.js"
+    ],
+    prompt:"Explain Node.js internals deeply: how libuv works, what the thread pool is and which operations use it, all 7 event loop phases with timing, the difference between nextTick queue and Promise microtask queue, and show code that demonstrates the execution order. Include a realistic example of accidentally blocking the event loop and how to fix it."
+  },
+  {
+    id:2, phase:"foundation", num:"03",
+    title:"Modules & npm",
+    sub:"CommonJS, ESM, package.json deep dive, semver, and supply chain security.",
+    topics:[
+      "CommonJS: require(), module.exports, the module wrapper IIFE",
+      "ESM: import/export static analysis, .mjs, \"type\":\"module\" in package.json",
+      "CommonJS vs ESM: circular deps, top-level await, interoperability",
+      "package.json deep dive: scripts, engines, exports map, workspaces",
+      "Semantic versioning: ^, ~, exact ranges; lockfiles; npm ci vs npm install",
+      "Module resolution algorithm: how Node.js walks node_modules",
+      "Supply chain security: npm audit, provenance, .npmrc, lock-file integrity"
+    ],
+    prompt:"Teach me the Node.js module system completely. Show CommonJS require() with the module wrapper IIFE, then ESM import/export with static analysis benefits. Explain the interoperability challenges between them, show a package.json exports map with subpath exports, explain the module resolution algorithm step by step, and cover npm security best practices including audit and provenance."
+  },
+  {
+    id:3, phase:"core", num:"04",
+    title:"Event loop deep dive",
+    sub:"Make the event loop crystal clear — all 7 phases with code proving execution order.",
+    topics:[
+      "Phase 1 — timers: setTimeout and setInterval minimum threshold behavior",
+      "Phase 2 — pending callbacks: I/O errors deferred from previous tick",
+      "Phase 3/4 — idle/prepare: internal Node.js use, not for userland code",
+      "Phase 5 — poll: blocking for new I/O, executing I/O callbacks inline",
+      "Phase 6 — check: setImmediate() and why it beats setTimeout(fn,0)",
+      "Phase 7 — close callbacks: socket.destroy() and cleanup handlers",
+      "Microtask priority: nextTick queue runs before Promise queue, always"
+    ],
+    prompt:"Give me a deep dive on the Node.js event loop. Explain all 7 phases with what each one does, then write code that proves the execution order between: setTimeout(0), setImmediate, Promise.resolve, process.nextTick, and fs.readFile callbacks. Show output and explain why each fires in that order. Include a real-world mistake that comes from misunderstanding the loop."
+  },
+  {
+    id:4, phase:"core", num:"05",
+    title:"Streams & Buffers",
+    sub:"Handle large data efficiently — streams are one of Node's most powerful and underused primitives.",
+    topics:[
+      "Buffer: fixed-size memory allocation, encodings (utf8, hex, base64, binary)",
+      "Readable streams: flowing vs paused mode, highWaterMark, read() vs on('data')",
+      "Writable streams: write() return value, drain event, when to pause",
+      "Transform streams: zlib gzip and crypto cipher as production examples",
+      "pipe() and pipeline() — composing streams with automatic cleanup",
+      "Readable.from() and async generator streams introduced in Node 12+",
+      "Backpressure: what it is, why ignoring it causes OOM crashes, how to respect it"
+    ],
+    prompt:"Teach me Node.js Streams and Buffers with real working code. Cover: what a Buffer is and all encoding modes, the 4 stream types (Readable, Writable, Duplex, Transform) with examples of each, flowing vs paused mode, highWaterMark, the drain event, pipe() vs pipeline() with error handling, building a Transform stream from scratch, and a full demonstration of backpressure causing and solving a memory problem."
+  },
+  {
+    id:5, phase:"core", num:"06",
+    title:"File system & path",
+    sub:"Reading, writing, watching — essential for CLIs, build tools, and any real application.",
+    topics:[
+      "fs.readFile vs fs.createReadStream — when to use each and why",
+      "fs/promises: the modern async/await API without callback boilerplate",
+      "Directory operations: mkdir, readdir, rm with recursive option",
+      "fs.watch and FSWatcher — detecting file changes across platforms",
+      "path module: join, resolve, dirname, extname, relative, normalize",
+      "Symlinks, hard links, and when to use stat vs lstat vs fstat",
+      "File permissions, open flags ('r', 'w', 'a', 'wx'), umask behavior"
+    ],
+    prompt:"Teach me the Node.js fs and path modules completely. Cover: fs/promises vs callback API, when to stream vs buffer a file, reading directories recursively, watching files with fs.watch (and its cross-platform quirks), the path module functions with real examples, handling ENOENT and EACCES errors gracefully, and build a small CLI tool that reads all .js files in a directory tree."
+  },
+  {
+    id:6, phase:"core", num:"07",
+    title:"HTTP & networking",
+    sub:"Build servers from scratch before reaching for Express. Understand HTTP at the protocol level.",
+    topics:[
+      "http.createServer — full request/response lifecycle, IncomingMessage anatomy",
+      "https module: TLS configuration, self-signed certs, SNI for multiple domains",
+      "net module: raw TCP sockets, building custom binary protocols",
+      "URL and querystring parsing: new URL(), URLSearchParams, percent-encoding",
+      "Handling multipart/form-data, chunked transfer encoding, streaming uploads",
+      "WebSockets with the ws library — rooms and broadcast patterns",
+      "Making HTTP requests: native fetch() (Node 18+) vs axios vs got"
+    ],
+    prompt:"Teach me Node.js HTTP from scratch. Build a raw HTTP server without any framework — handle routing manually, parse query strings, read request bodies, set response headers. Add HTTPS with a self-signed cert. Show the full HTTP/1.1 request lifecycle. Then use native fetch() to make requests. Finish by building a minimal WebSocket server. No Express — pure Node.js only."
+  },
+  {
+    id:7, phase:"advanced", num:"08",
+    title:"Async mastery",
+    sub:"From callback hell to clean, cancellable async code. The single most critical skill in Node.",
+    topics:[
+      "Callbacks: error-first convention, callback hell, and why it was a problem",
+      "Promisification: util.promisify, manual Promise wrapping from scratch",
+      "Promise combinators: all, allSettled, race, any — and when to use each",
+      "async/await: try/catch patterns, parallel vs sequential, avoiding await in loops",
+      "AbortController + AbortSignal: cancelling fetch requests and timers",
+      "Async iterators: for-await-of with streams and paginated APIs",
+      "Unhandled rejection handling, error propagation, AsyncLocalStorage for context"
+    ],
+    prompt:"Teach me Node.js async programming from the ground up. Start with callback patterns and show why they break at scale. Move to Promises — manual wrapping, util.promisify, all 4 combinators with real use cases. Then async/await — show the parallel vs sequential pattern, the common mistakes (await in a loop), and error handling strategies. Cover AbortController for cancellation, async generators with for-await-of, and AsyncLocalStorage for request-scoped context."
+  },
+  {
+    id:8, phase:"advanced", num:"09",
+    title:"Express & web frameworks",
+    sub:"Build production APIs with proper middleware architecture, error handling, and framework comparisons.",
+    topics:[
+      "Express routing: Router(), route params, wildcards, method chaining",
+      "Middleware chain: req/res/next, execution order, why order matters",
+      "Error-handling middleware: 4-argument signature (err, req, res, next)",
+      "Key middleware: cors, morgan, express.json, multer, compression, express-validator",
+      "Fastify: JSON schema validation, plugin system, lifecycle hooks, 2x faster than Express",
+      "Hono: edge-first, built on Web Standards API, runs on Bun/Deno/Cloudflare Workers",
+      "MVC architecture: separating routes, controllers, services, models, repositories"
+    ],
+    prompt:"Teach me Express.js architecture deeply. Build a complete REST API with: Router() for modular routing, custom middleware (logging, auth check, request ID), proper 4-argument error handling middleware, input validation with express-validator, rate limiting, and file uploads with multer. Then refactor it into a proper MVC layered architecture. Finally, compare Express with Fastify by showing the same API in Fastify with schema validation."
+  },
+  {
+    id:9, phase:"advanced", num:"10",
+    title:"Databases & ORMs",
+    sub:"Connect Node to real data stores — SQL, NoSQL, caching, and solving concurrency problems.",
+    topics:[
+      "PostgreSQL with the pg driver: connection pooling with pg.Pool properly sized",
+      "Prisma ORM: schema definition, migrations, type-safe queries, relations",
+      "MongoDB with Mongoose: schema design, indexes, aggregation pipeline",
+      "Redis with ioredis: caching patterns, pub/sub, atomic operations, rate limiting",
+      "Transactions: ACID guarantees, isolation levels, deadlock detection in Postgres",
+      "The N+1 problem: detecting it, solving it with DataLoader, eager loading",
+      "Connection pooling strategy: PgBouncer in production, sizing math formula"
+    ],
+    prompt:"Teach me Node.js database patterns comprehensively. Cover: pg driver with pg.Pool and proper connection management, Prisma schema with relations and migrations, raw queries vs ORM queries, MongoDB with Mongoose schemas and the aggregation pipeline, Redis caching with TTL and cache invalidation, database transactions with proper error handling and rollback, and demonstrate the N+1 problem then solve it with DataLoader."
+  },
+  {
+    id:10, phase:"advanced", num:"11",
+    title:"Auth & security",
+    sub:"Secure your applications against real-world threats. Security is architecture, not an afterthought.",
+    topics:[
+      "JWT deep dive: signing algorithms (HS256 vs RS256), verification, refresh token rotation",
+      "OAuth 2.0 + OIDC: authorization code flow with PKCE for SPAs and mobile",
+      "Passport.js: local strategy, Google OAuth strategy, session vs stateless",
+      "RBAC and ABAC: roles, permissions, middleware-based policy enforcement",
+      "OWASP Top 10 in Node context: injection, XSS, CSRF, SSRF, insecure deserialization",
+      "helmet.js: CSP, HSTS, X-Frame-Options, Referrer-Policy configuration",
+      "Rate limiting: express-rate-limit, Redis sliding window algorithm"
+    ],
+    prompt:"Teach me Node.js security comprehensively. Build a complete auth system: JWT with HS256 signing, access token + refresh token rotation, secure httpOnly cookies. Implement OAuth2 authorization code flow with PKCE. Add RBAC middleware that checks permissions per route. Then cover OWASP Top 10 vulnerabilities specifically in Node/Express — show vulnerable code and the secure fix for each. Configure helmet.js and implement Redis-based rate limiting."
+  },
+  {
+    id:11, phase:"expert", num:"12",
+    title:"Performance & scaling",
+    sub:"Make Node handle millions of requests — profiling with flamegraphs, clustering, and V8 tuning.",
+    topics:[
+      "Cluster module: forking workers, IPC messaging, zero-downtime reload with pm2",
+      "Worker threads: true CPU parallelism for intensive tasks, SharedArrayBuffer",
+      "Profiling: --prof flag, V8 tick profiler, flamegraph generation with 0x",
+      "Memory leaks: heap snapshots in Chrome DevTools, WeakRef, EventEmitter leak detection",
+      "V8 optimizations: hidden classes, monomorphic functions, deoptimization triggers",
+      "Object pooling, buffer reuse, avoiding allocations in hot code paths",
+      "Load testing: autocannon, k6, interpreting p50/p95/p99 latency percentiles"
+    ],
+    prompt:"Teach me Node.js performance optimization at an expert level. Cover: the Cluster module with IPC and zero-downtime restart, Worker threads for CPU-bound work with SharedArrayBuffer communication, profiling with 0x to generate flamegraphs and identify bottlenecks, finding memory leaks with heap snapshots, how V8 hidden classes work and what breaks monomorphism, object pooling patterns, and load testing with autocannon interpreting percentiles. Include realistic before/after benchmarks."
+  },
+  {
+    id:12, phase:"expert", num:"13",
+    title:"Microservices & architecture",
+    sub:"System design patterns used in real production — event sourcing, CQRS, message queues.",
+    topics:[
+      "Monolith-to-microservices decomposition: strangler fig, bounded contexts",
+      "Message queues: RabbitMQ, Apache Kafka, BullMQ for reliable job queues",
+      "CQRS pattern: separating command and query models, read replicas",
+      "Event sourcing: event store, event replay, eventual consistency tradeoffs",
+      "API Gateway pattern: aggregation, circuit breaker (opossum), BFF pattern",
+      "gRPC with Node.js: Protocol Buffers, bidirectional streaming, service definitions",
+      "GraphQL with Apollo Server: schema-first design, DataLoader, subscriptions"
+    ],
+    prompt:"Teach me Node.js microservices architecture at a senior engineer level. Cover: decomposing a monolith using bounded contexts, building a job queue system with BullMQ and Redis, implementing CQRS with separate read/write services, event sourcing with an event store and replay capability, building a circuit breaker with opossum, gRPC service communication with Protocol Buffers, and a GraphQL API with Apollo Server using DataLoader to solve N+1. Show the architecture diagram and key code for each pattern."
+  },
+  {
+    id:13, phase:"expert", num:"14",
+    title:"Testing & observability",
+    sub:"Ship with confidence — comprehensive testing strategies and full production visibility.",
+    topics:[
+      "Jest and Vitest: unit tests, module mocking, spies, snapshot testing",
+      "Supertest: API integration testing without starting a real server",
+      "Playwright: end-to-end browser testing, API testing, CI integration",
+      "Code coverage: Istanbul/nyc, coverage thresholds enforced in CI pipelines",
+      "Structured logging: Winston vs Pino (10x faster), log levels, correlation IDs",
+      "Metrics: prom-client for Prometheus, custom counters, histograms, gauges",
+      "Distributed tracing: OpenTelemetry SDK, trace propagation, Jaeger visualization"
+    ],
+    prompt:"Teach me Node.js testing and observability comprehensively. Build a testing suite with Vitest: unit tests with mocking, integration tests with Supertest against a real Express app, and explain test isolation patterns. Set up Pino structured logging with correlation IDs threaded through requests using AsyncLocalStorage. Instrument a service with prom-client Prometheus metrics (request duration histogram, active connections gauge). Add OpenTelemetry tracing with trace propagation across service calls. Show how it all comes together in a CI pipeline."
+  },
+  {
+    id:14, phase:"expert", num:"15",
+    title:"DevOps & deployment",
+    sub:"Take Node from your machine to production — containers, CI/CD, Kubernetes, and 12-factor.",
+    topics:[
+      "Docker: multi-stage builds, non-root user, .dockerignore, layer caching",
+      "docker-compose for local dev: Node + Postgres + Redis full stack",
+      "CI/CD: GitHub Actions pipeline — lint, test, build, push to registry, deploy",
+      "Kubernetes: Deployment, Service, HPA, ConfigMap, Secrets, liveness probes",
+      "Zero-downtime deploys: rolling updates, readiness probes, preStop hook",
+      "Cloud options: AWS ECS/Fargate, AWS Lambda, GCP Cloud Run, Render, Railway",
+      "12-factor app principles: env vars, config, stateless processes, backing services"
+    ],
+    prompt:"Teach me production deployment for Node.js at an expert level. Write a proper multi-stage Dockerfile with build stage, non-root user, and minimal final image. Create a docker-compose.yml for local development with Node + Postgres + Redis. Build a complete GitHub Actions CI/CD pipeline: lint → test → build Docker image → push to registry → deploy. Write Kubernetes manifests: Deployment with resource limits, Service, HPA, ConfigMap, Secrets, readiness/liveness probes. Explain zero-downtime rolling deployments and the 12-factor principles applied to Node."
+  }
+];
+
+const phaseTagMap = {
+  foundation: '<span class="phase-tag phase-foundation">Phase 1 — Foundation</span>',
+  core:       '<span class="phase-tag phase-core">Phase 2 — Core APIs</span>',
+  advanced:   '<span class="phase-tag phase-advanced">Phase 3 — Advanced</span>',
+  expert:     '<span class="phase-tag phase-expert">Phase 4 — Expert</span>'
+};
+const dotColorMap = { foundation:'', core:'green', advanced:'amber', expert:'red' };
+
+function buildCards() {
+  const containers = {
+    foundation: document.getElementById('cards-foundation'),
+    core: document.getElementById('cards-core'),
+    advanced: document.getElementById('cards-advanced'),
+    expert: document.getElementById('cards-expert')
+  };
+  modules.forEach(m => {
+    const div = document.createElement('div');
+    div.className = 'card';
+    div.setAttribute('tabindex', '0');
+    div.setAttribute('role', 'button');
+    div.setAttribute('aria-label', `Module ${m.num}: ${m.title}`);
+    div.innerHTML = `
+      <div class="card-mod-num">MODULE ${m.num}</div>
+      <div class="card-title">${m.title}</div>
+      <div class="card-sub">${m.sub}</div>
+      <span class="card-arrow" aria-hidden="true">↗</span>
+    `;
+    div.addEventListener('click', () => openModal(m));
+    div.addEventListener('keydown', e => { if(e.key==='Enter'||e.key===' ') openModal(m); });
+    containers[m.phase].appendChild(div);
+  });
+}
+
+function openModal(m) {
+  document.getElementById('modalPhase').innerHTML = phaseTagMap[m.phase];
+  document.getElementById('modalTitle').textContent = m.title;
+  document.getElementById('modalSub').textContent = m.sub;
+  const dotClass = dotColorMap[m.phase];
+  document.getElementById('modalTopics').innerHTML = m.topics.map(t =>
+    `<div class="topic-item"><div class="topic-dot ${dotClass}"></div><span>${t}</span></div>`
+  ).join('');
+  document.getElementById('modalPrompt').textContent = m.prompt;
+  document.getElementById('copyBtn').textContent = '⌘ Copy prompt';
+  document.getElementById('copyBtn').classList.remove('copied');
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('modalClose').focus();
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function copyPrompt() {
+  const text = document.getElementById('modalPrompt').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '⌘ Copy prompt';
+      btn.classList.remove('copied');
+    }, 2200);
+  });
+}
+
+document.getElementById('modalClose').addEventListener('click', closeModal);
+document.getElementById('modalOverlay').addEventListener('click', e => {
+  if(e.target === document.getElementById('modalOverlay')) closeModal();
+});
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closeModal();
+});
+
+buildCards();
+</script>
+</body>
+</html>
